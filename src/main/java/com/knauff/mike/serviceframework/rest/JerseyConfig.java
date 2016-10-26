@@ -22,8 +22,8 @@ public class JerseyConfig extends ResourceConfig {
 	public JerseyConfig() {
 		// Resource handlers for the application
 		// Rename or add application-specific resource handlers
-		register(RestAppResourceHandler1.class);
-		register(RestAppResourceHandler2.class);
+		register(RestSuperHeroResourceHandler.class);
+		register(RestAircraftResourceHandler.class);
 		// Add other resource handlers here
 		
 	}

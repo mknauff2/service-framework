@@ -1,0 +1,49 @@
+/**
+ * 
+ */
+package com.knauff.mike.serviceframework.resources;
+
+/**
+ * @author mknau
+ *
+ */
+public class AircraftResourceMock implements IGenericResource<IAircraft> {
+
+	/**
+	 * 
+	 */
+	public AircraftResourceMock() {
+		// do nothing
+	}
+
+	@Override
+	public IAircraft create(String resourceId) {
+		IAircraft aircraft = new CombatAircraft(
+				resourceId,
+				"Raptor",
+				"1,839 miles",
+				"60,000 ft",
+				"1,498 mph"				
+				);
+		
+		return aircraft;
+	}
+
+	@Override
+	public IAircraft read(String resourceId) {
+		
+		return this.create(resourceId);
+	}
+
+	@Override
+	public IAircraft update(String resourceId, IAircraft resource) {
+		return resource;
+	}
+
+	@Override
+	public IAircraft delete(String resourceId) {
+		
+		return this.create(resourceId);
+	}
+	
+}

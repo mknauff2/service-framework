@@ -3,6 +3,10 @@
  */
 package com.knauff.mike.serviceframework.processors;
 
+import com.knauff.mike.serviceframework.resources.ISuperHero;
+import com.knauff.mike.serviceframework.resources.IGenericResource;
+import com.knauff.mike.serviceframework.resources.SuperHeroResourceMock;
+
 /**
  * Resource processor shell for handling resource CRUD requests. Needs to 
  * be heavily modified for an actual application and attached to a resource
@@ -15,31 +19,33 @@ package com.knauff.mike.serviceframework.processors;
  * @author mknauff
  *
  */
-public class Resource1Processor implements IResourceProcessor {
+public class SuperHeroResourceProcessor implements IGenericResourceProcessor<ISuperHero> {
 
+	IGenericResource<ISuperHero> resource;
+	
 	/**
 	 * 
 	 */
-	public Resource1Processor() {
-		// TODO Auto-generated constructor stub
+	
+	public SuperHeroResourceProcessor() {
+		this.resource = new SuperHeroResourceMock();
 	}
 
 	/* (non-Javadoc)
 	 * @see com.knauff.mike.serviceframework.processors.IResourceProcessor#getResource(java.lang.String)
 	 */
 	@Override
-	public String getResource(String resourceId) {
-		// TODO Auto-generated method stub
-		return resourceId;
+	public ISuperHero getResource(String resourceId) {
+		
+		return this.resource.read(resourceId);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.knauff.mike.serviceframework.processors.IResourceProcessor#createResource(java.lang.Object)
 	 */
 	@Override
-	public String addUpdateResource(String resourceId, String resourceState) {
-		// TODO Auto-generated method stub
-		return resourceId + " " + resourceState;
+	public ISuperHero addUpdateResource(String resourceId) {
+		return this.resource.create(resourceId);
 
 	}
 
@@ -47,18 +53,18 @@ public class Resource1Processor implements IResourceProcessor {
 	 * @see com.knauff.mike.serviceframework.processors.IResourceProcessor#updateResource(java.lang.String)
 	 */
 	@Override
-	public String updateResource(String resourceId, String resource) {
-		// TODO Auto-generated method stub
-		return resourceId + " " + resource;
+	public ISuperHero updateResource(String resourceId, ISuperHero resource) {
+		
+		return this.resource.update(resourceId, resource);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.knauff.mike.serviceframework.processors.IResourceProcessor#deleteResource(java.lang.String)
 	 */
 	@Override
-	public String deleteResource(String resource) {
-		// TODO Auto-generated method stub
-		return resource;
+	public ISuperHero deleteResource(String resourceId) {
+		
+		return this.resource.delete(resourceId);
 	}
 	
 	

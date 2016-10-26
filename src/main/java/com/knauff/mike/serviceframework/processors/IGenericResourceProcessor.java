@@ -4,30 +4,27 @@
 package com.knauff.mike.serviceframework.processors;
 
 /**
- * Interface for common resource processors. Needs to be modified for use
- * by an actual application.
- * 
  * @author mknauff
  *
  */
-public interface IResourceProcessor {
+public interface IGenericResourceProcessor<T> {
 	
 	/**
 	 * Assumes that the operation is safe
 	 * 
 	 * @param resourceId of the resource to return
-	 * @return a resource as a string
+	 * @return a resource
 	 */
-	String getResource(String resourceId);
+	T getResource(String resourceId);
 	
 	/**
 	 * Assumes the resource is idempotent
 	 * 
 	 * @param resourceId of the resource to add or update
-	 * @param resource is the resource value(s) represented as a string
+	 * @param resource is the resource value(s)
 	 * @return the new or updated resource as a string
 	 */
-	String addUpdateResource(String resourceId, String resource);
+	T addUpdateResource(String resourceId);
 	
 	/**
 	 * May create a new resource or append new state to an existing resource.
@@ -35,16 +32,16 @@ public interface IResourceProcessor {
 	 * Assumes that the resource is idempotent
 	 * 
 	 * @param resourceId the resource to create or append
-	 * @param resource represented as a string to update
+	 * @param resource represented as a superheor to update
 	 * @return the updated resource
 	 */
-	String updateResource(String resourceId, String resource);
+	T updateResource(String resourceId, T resource);
 	
 	/**
 	 * 
 	 * @param resourceId of the resource to delete
 	 * @return the deleted resource
 	 */
-	String deleteResource(String resourceId);
+	T deleteResource(String resourceId);
 
 }
