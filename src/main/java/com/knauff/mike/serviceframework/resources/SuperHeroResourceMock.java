@@ -24,7 +24,7 @@ public class SuperHeroResourceMock implements IGenericResource<ISuperHero> {
 	 */
 	@Override
 	public ISuperHero create(String resourceId) {
-		ISuperHero superman = new SuperHero(
+		return new SuperHero(
 				resourceId,
 				"Superman",
 				"Clark Kent",
@@ -32,8 +32,6 @@ public class SuperHeroResourceMock implements IGenericResource<ISuperHero> {
 				"DC Comics",
 				"Justice League",
 				true);
-				
-		return superman;
 	}
 
 	/* (non-Javadoc)

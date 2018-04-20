@@ -18,15 +18,13 @@ public class AircraftResourceMock implements IGenericResource<IAircraft> {
 
 	@Override
 	public IAircraft create(String resourceId) {
-		IAircraft aircraft = new CombatAircraft(
+		return new CombatAircraft(
 				resourceId,
 				"Raptor",
 				"1,839 miles",
 				"60,000 ft",
 				"1,498 mph"				
 				);
-		
-		return aircraft;
 	}
 
 	@Override

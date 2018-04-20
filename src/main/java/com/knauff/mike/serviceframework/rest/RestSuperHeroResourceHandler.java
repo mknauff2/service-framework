@@ -3,20 +3,19 @@
  */
 package com.knauff.mike.serviceframework.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knauff.mike.serviceframework.processors.IGenericResourceProcessor;
 import com.knauff.mike.serviceframework.processors.SuperHeroResourceProcessor;
@@ -31,17 +30,30 @@ import com.knauff.mike.serviceframework.resources.SuperHero;
  *
  */
 @Component
-@Path("resource/v0/superheroes")
+@RestController
+@RequestMapping("/my-app/resource/v0/superheroes")
 public class RestSuperHeroResourceHandler {
 
+	// Log initialization
+	Logger logger = LoggerFactory.getLogger(RestSuperHeroResourceHandler.class);
+    
+	// The application content type
+	public static final String APP_JSON = "application/json";
+	
+	// The specific type of resource processor
 	private IGenericResourceProcessor<ISuperHero> processor;
+	
+	// JSON message if the resource is not found
+	private static final String NOT_FOUND = "{ Super Hero not found }";
+	
 	
 	/**
 	 * 
 	 */
-	public RestSuperHeroResourceHandler() {
+	@Autowired
+	public RestSuperHeroResourceHandler(SuperHeroResourceProcessor processor) {
 		
-		this.processor = new SuperHeroResourceProcessor();
+		this.processor = processor;
 	}
 	
 	/**
@@ -50,16 +62,16 @@ public class RestSuperHeroResourceHandler {
 	 * @param httpHeaders
 	 * @return the response including the requested resource
 	 */
-	@GET
-	@Path("/{resource-id}")
-	@Produces("text/json")
-	public Response getResource(
-			@PathParam("resource-id") String resourceId,
-			@Context HttpHeaders httpHeaders) {
+	@RequestMapping(
+			value="/{resourceId}",
+			method=RequestMethod.GET,
+			produces=APP_JSON)
+	public ResponseEntity<String> getResource(
+			@PathVariable String resourceId) {
 		
 		ISuperHero superHero = this.processor.getResource(resourceId);
 		
-		return Response.ok(superHeroToJson(superHero)).build();
+		return responseHandler(superHero, null);
 	}
 	
 	/**
@@ -68,17 +80,18 @@ public class RestSuperHeroResourceHandler {
 	 * @param httpHeaders
 	 * @return the response including the new or updated resource
 	 */
-	@PUT
-	@Path("/{resource-id}/{resource-state}")
-	@Produces("text/json")
-	public Response putResource(
-			@PathParam("resource-id") String resourceId,
-			@PathParam("resource-state") String resourceState,
-			@Context HttpHeaders httpHeaders) {
+	@RequestMapping(
+			value="/{resourceId}",
+			method=RequestMethod.PUT,
+			consumes=APP_JSON,
+			produces=APP_JSON)
+	public ResponseEntity<String> putResource(
+			@PathVariable String resourceId,
+			@RequestBody String resourceState) {
 		
 		ISuperHero superHero = this.processor.addUpdateResource(resourceId);
 		
-		return Response.ok(superHeroToJson(superHero)).build();		
+		return responseHandler(superHero, null);		
 	}
 	
 	/**
@@ -87,20 +100,20 @@ public class RestSuperHeroResourceHandler {
 	 * @param httpHeaders
 	 * @return the response including the new or appended resource
 	 */
-	@POST
-	@Path("/{resource-id}")
-	@Consumes("application/json")
-	@Produces("text/json")
-	public Response postResource(
-			@PathParam("resource-id") String resourceId,
-			String resource,
-			@Context HttpHeaders httpHeaders) {
+	@RequestMapping(
+			value="/{resourceId}",
+			method=RequestMethod.POST,
+			consumes=APP_JSON,
+			produces=APP_JSON)
+	public ResponseEntity<String> postResource(
+			@PathVariable String resourceId,
+			@RequestBody String resourceState) {
 		
-		ISuperHero modResource = jsonToSuperHero(resource);
+		ISuperHero modResource = jsonToSuperHero(resourceState);
 		
 		ISuperHero superHero = this.processor.updateResource(resourceId, modResource);
 		
-		return Response.ok(superHeroToJson(superHero)).build();
+		return responseHandler(superHero, null);
 	}
 	
 	/**
@@ -109,15 +122,49 @@ public class RestSuperHeroResourceHandler {
 	 * @param httpHeaders
 	 * @return the response including the resource that was deleted
 	 */
-	@DELETE
-	@Path("/{resource-id}")
-	@Produces("text/json")
-	public Response deleteResource(
-			@PathParam("resource-id") String resourceId,
-			@Context HttpHeaders httpHeaders) {
+	@RequestMapping(
+			value="/{resourceId}",
+			method=RequestMethod.DELETE,
+			produces=APP_JSON)
+	public ResponseEntity<String> deleteResource(
+			@PathVariable String resourceId) {
 		
 		ISuperHero superHero = this.processor.deleteResource(resourceId); 
-		return Response.ok(superHeroToJson(superHero)).build();		
+		return responseHandler(superHero, null);		
+	}
+	
+	
+	/**
+	 * @param superHero
+	 * @param ex
+	 * @return
+	 */
+	private ResponseEntity<String> responseHandler(final ISuperHero superHero, final Exception ex) {
+		
+		final String beginJsonMsg = "{ \"message\":\"";
+		final String endJsonMsg = "\" }";
+		
+		if(superHero == null && ex == null) {
+			
+			logger.debug("Superhero not found!");
+			return new ResponseEntity<>(beginJsonMsg + NOT_FOUND + 
+					endJsonMsg, HttpStatus.NOT_FOUND);
+			
+		} else if(superHero != null && ex == null) {
+			logger.debug("Superhero found!");
+			return ResponseEntity.ok(superHeroToJson(superHero));
+			
+		} else if(ex instanceof JsonMappingException) {
+			logger.debug("ERROR 102: JSON Mapping Error!");
+			return new ResponseEntity<>(beginJsonMsg + ex.getMessage() + 
+					endJsonMsg, HttpStatus.BAD_REQUEST);
+			
+		} else {
+			logger.debug("ERROR 999: Unknown Error!");
+			logger.debug("Error Message: " + ex.getMessage());
+			return new ResponseEntity<>(beginJsonMsg + ex.getMessage() + 
+					endJsonMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	/**
@@ -132,7 +179,8 @@ public class RestSuperHeroResourceHandler {
 		try {
 			jsonString = mapper.writeValueAsString(superHero);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("ERROR 100: Unable to convert object" + superHero 
+					+ " to JSON string", e);
 		}
 		
 		return jsonString;
@@ -150,7 +198,8 @@ public class RestSuperHeroResourceHandler {
 		try {
 			superHero = mapper.readValue(jsonString, SuperHero.class);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("ERROR 101: Unable to convert JSON string" + jsonString 
+					+ " to object " + superHero, e);
 		}
 		
 		return superHero;

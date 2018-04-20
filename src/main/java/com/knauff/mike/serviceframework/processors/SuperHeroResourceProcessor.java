@@ -4,8 +4,11 @@
 package com.knauff.mike.serviceframework.processors;
 
 import com.knauff.mike.serviceframework.resources.ISuperHero;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
 import com.knauff.mike.serviceframework.resources.IGenericResource;
-import com.knauff.mike.serviceframework.resources.SuperHeroResourceMock;
 
 /**
  * Resource processor shell for handling resource CRUD requests. Needs to 
@@ -19,6 +22,8 @@ import com.knauff.mike.serviceframework.resources.SuperHeroResourceMock;
  * @author mknauff
  *
  */
+@Profile("dev")
+@Component
 public class SuperHeroResourceProcessor implements IGenericResourceProcessor<ISuperHero> {
 
 	IGenericResource<ISuperHero> resource;
@@ -26,9 +31,9 @@ public class SuperHeroResourceProcessor implements IGenericResourceProcessor<ISu
 	/**
 	 * 
 	 */
-	
-	public SuperHeroResourceProcessor() {
-		this.resource = new SuperHeroResourceMock();
+	@Autowired
+	public SuperHeroResourceProcessor(IGenericResource<ISuperHero> resource) {
+		this.resource = resource;
 	}
 
 	/* (non-Javadoc)
