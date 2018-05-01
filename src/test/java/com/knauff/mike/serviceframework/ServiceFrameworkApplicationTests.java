@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.knauff.mike.serviceframework.resources.CombatAircraft;
 import com.knauff.mike.serviceframework.resources.SuperHero;
 import com.knauff.mike.serviceframework.rest.RestSuperHeroResourceHandler;
 
@@ -56,7 +57,7 @@ public class ServiceFrameworkApplicationTests {
 	 * 
 	 */
 	@Test
-	public void testGetResource() {
+	public void testGetSuperHeroResource() {
 		final String appJson = RestSuperHeroResourceHandler.APP_JSON;
 		
 		// Create the required headers and set the content type for the test
@@ -70,6 +71,28 @@ public class ServiceFrameworkApplicationTests {
 		
 		// Make sure that the response was successful
 		assertThat(superHeroEntity.getStatusCode(), is(HttpStatus.OK));
-	}	
+	}
+	
+	/**
+	 * Ensure that the application content type is set correctly and
+	 * resource is returned with the correct status code.
+	 * 
+	 */
+	@Test
+	public void testGetAircraftResource() {
+		final String appJson = RestSuperHeroResourceHandler.APP_JSON;
+		
+		// Create the required headers and set the content type for the test
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", appJson);
+		
+		// Call the Super Hero Service and get a Super Hero Object 
+		ResponseEntity<CombatAircraft> combatAircraftEntity =
+				restTemplate.exchange("/my-app/resource/v0/aircraft/500",
+						HttpMethod.GET, new HttpEntity<>(headers), CombatAircraft.class);
+		
+		// Make sure that the response was successful
+		assertThat(combatAircraftEntity.getStatusCode(), is(HttpStatus.OK));
+	}
 
 }

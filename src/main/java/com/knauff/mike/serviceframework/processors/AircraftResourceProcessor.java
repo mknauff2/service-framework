@@ -3,7 +3,10 @@
  */
 package com.knauff.mike.serviceframework.processors;
 
-import com.knauff.mike.serviceframework.resources.AircraftResourceMock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
 import com.knauff.mike.serviceframework.resources.IAircraft;
 import com.knauff.mike.serviceframework.resources.IGenericResource;
 
@@ -11,6 +14,8 @@ import com.knauff.mike.serviceframework.resources.IGenericResource;
  * @author mknauff
  *
  */
+@Profile("dev")
+@Component
 public class AircraftResourceProcessor implements IGenericResourceProcessor<IAircraft> {
 
 	IGenericResource<IAircraft> resource;
@@ -18,9 +23,10 @@ public class AircraftResourceProcessor implements IGenericResourceProcessor<IAir
 	/**
 	 * 
 	 */
-	public AircraftResourceProcessor() {
+	@Autowired
+	public AircraftResourceProcessor(IGenericResource<IAircraft> resource) {
 		
-		this.resource = new AircraftResourceMock();
+		this.resource = resource;
 	}
 
 	@Override

@@ -3,18 +3,19 @@
  */
 package com.knauff.mike.serviceframework.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knauff.mike.serviceframework.processors.AircraftResourceProcessor;
 import com.knauff.mike.serviceframework.processors.IGenericResourceProcessor;
@@ -28,17 +29,30 @@ import com.knauff.mike.serviceframework.resources.IAircraft;
  * @author mknauff
  *
  */
-@Path("/resource/v0/aircraft")
+@Component
+@RestController
+@RequestMapping("/my-app/resource/v0/aircraft")
 public class RestAircraftResourceHandler {
 	
+	// Log initialization
+	Logger logger = LoggerFactory.getLogger(RestSuperHeroResourceHandler.class);
+	
+	// The application content type
+	public static final String APP_JSON = "application/json";
+		
+	// The specific type of resource processor
 	private IGenericResourceProcessor<IAircraft> processor;
 
+	// JSON message if the resource is not found
+	private static final String NOT_FOUND = "{ Aircraft not found }";
+		
 	/**
 	 * 
 	 */
-	public RestAircraftResourceHandler() {
+	@Autowired
+	public RestAircraftResourceHandler(AircraftResourceProcessor processor) {
 		
-		this.processor = new AircraftResourceProcessor();
+		this.processor = processor;
 	}
 	
 	/**
@@ -47,15 +61,15 @@ public class RestAircraftResourceHandler {
 	 * @param httpHeaders
 	 * @return the response including the requested resource
 	 */
-	@GET
-	@Path("/{resource-id}")
-	@Produces("text/json")
-	public Response getResource(
-			@PathParam("resource-id") String resourceId,
-			@Context HttpHeaders httpHeaders) {
+	@RequestMapping(
+			value="/{resourceId}",
+			method=RequestMethod.GET,
+			produces=APP_JSON)
+	public ResponseEntity<String> getResource(
+			@PathVariable String resourceId) {
 		
 		IAircraft aircraft = this.processor.getResource(resourceId);
-		return Response.ok(this.aircraftToJson(aircraft)).build();
+		return responseHandler(aircraft, null);
 	}
 	
 	/**
@@ -64,16 +78,17 @@ public class RestAircraftResourceHandler {
 	 * @param httpHeaders
 	 * @return the response including the new or updated resource
 	 */
-	@PUT
-	@Path("/{resource-id}/{resource-state}")
-	@Produces("text/jason")
-	public Response putResource(
-			@PathParam("resource-id") String resourceId,
-			@PathParam("resource-state") String resourceState,
-			@Context HttpHeaders httpHeaders) {
+	@RequestMapping(
+			value="/{resourceId}",
+			method=RequestMethod.PUT,
+			consumes=APP_JSON,
+			produces=APP_JSON)
+	public ResponseEntity<String> putResource(
+			@PathVariable String resourceId,
+			@RequestBody String resourceState) {
 		
 		IAircraft aircraft = this.processor.addUpdateResource(resourceId);
-		return Response.ok(this.aircraftToJson(aircraft)).build();		
+		return responseHandler(aircraft, null);		
 	}
 	
 	/**
@@ -82,20 +97,20 @@ public class RestAircraftResourceHandler {
 	 * @param httpHeaders
 	 * @return the response including the new or appended resource
 	 */
-	@POST
-	@Path("/{resource-id}")
-	@Consumes("application/json")
-	@Produces("text/jason")
-	public Response postResource(
-			@PathParam("resource-id") String resourceId,
-			String resource,
-			@Context HttpHeaders httpHeaders) {
+	@RequestMapping(
+			value="/{resourceId}",
+			method=RequestMethod.POST,
+			consumes=APP_JSON,
+			produces=APP_JSON)
+	public ResponseEntity<String> postResource(
+			@PathVariable String resourceId,
+			@RequestBody String resource) {
 		
 		IAircraft modResource = jsonToAircraft(resource);
 		
 		IAircraft aircraft = this.processor.updateResource(resourceId, modResource);
 				
-		return Response.ok(this.aircraftToJson(aircraft)).build();
+		return responseHandler(aircraft, null);
 	}
 	
 	/**
@@ -104,15 +119,48 @@ public class RestAircraftResourceHandler {
 	 * @param httpHeaders
 	 * @return the response including the resource that was deleted
 	 */
-	@DELETE
-	@Path("/{resource-id}")
-	@Produces("text/jason")
-	public Response deleteResource(
-			@PathParam("resource-id") String resourceId,
-			@Context HttpHeaders httpHeaders) {
+	@RequestMapping(
+			value="/{resourceId}",
+			method=RequestMethod.DELETE,
+			produces=APP_JSON)
+	public ResponseEntity<String> deleteResource(
+			@PathVariable String resourceId) {
 		
 		IAircraft aircraft = this.processor.deleteResource(resourceId);
-		return Response.ok(this.aircraftToJson(aircraft)).build();		
+		return responseHandler(aircraft, null);		
+	}
+	
+	/**
+	 * @param aircraft
+	 * @param ex
+	 * @return
+	 */
+	private ResponseEntity<String> responseHandler(final IAircraft aircraft, final Exception ex) {
+		
+		final String beginJsonMsg = "{ \"message\":\"";
+		final String endJsonMsg = "\" }";
+		
+		if(aircraft == null && ex == null) {
+			
+			logger.debug("Aircraft not found!");
+			return new ResponseEntity<>(beginJsonMsg + NOT_FOUND + 
+					endJsonMsg, HttpStatus.NOT_FOUND);
+			
+		} else if(aircraft != null && ex == null) {
+			logger.debug("Aircraft found!");
+			return ResponseEntity.ok(aircraftToJson(aircraft));
+			
+		} else if(ex instanceof JsonMappingException) {
+			logger.debug("ERROR 102: JSON Mapping Error!");
+			return new ResponseEntity<>(beginJsonMsg + ex.getMessage() + 
+					endJsonMsg, HttpStatus.BAD_REQUEST);
+			
+		} else {
+			logger.debug("ERROR 999: Unknown Error!");
+			logger.debug("Error Message: " + ex.getMessage());
+			return new ResponseEntity<>(beginJsonMsg + ex.getMessage() + 
+					endJsonMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	/**
@@ -127,7 +175,8 @@ public class RestAircraftResourceHandler {
 		try {
 			jsonString = mapper.writeValueAsString(aircraft);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("ERROR 100: Unable to convert object" + aircraft 
+					+ " to JSON string", e);
 		}
 		
 		return jsonString;
@@ -136,7 +185,7 @@ public class RestAircraftResourceHandler {
 	/**
 	 * 
 	 * @param jsonString
-	 * @return an aircraft object or null if an error occurs
+	 * @return a aircraft object or null if an error occurs
 	 */
 	private IAircraft jsonToAircraft(String jsonString) {
 		IAircraft aircraft = null;
@@ -145,10 +194,11 @@ public class RestAircraftResourceHandler {
 		try {
 			aircraft = mapper.readValue(jsonString, CombatAircraft.class);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("ERROR 101: Unable to convert JSON string" + jsonString 
+					+ " to object " + aircraft, e);
 		}
 		
 		return aircraft;
 	}
-
+	
 }

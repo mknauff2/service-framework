@@ -3,10 +3,13 @@
  */
 package com.knauff.mike.serviceframework.resources;
 
+import org.springframework.stereotype.Component;
+
 /**
  * @author mknau
  *
- */
+*/
+@Component
 public class AircraftResourceMock implements IGenericResource<IAircraft> {
 
 	/**
