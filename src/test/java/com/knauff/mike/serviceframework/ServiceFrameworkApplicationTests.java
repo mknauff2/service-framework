@@ -147,6 +147,28 @@ public class ServiceFrameworkApplicationTests {
 	 * Ensure that the application content type is set correctly and
 	 * resource is returned with the correct status code.
 	 * 
+	 */	 
+	@Test
+	public void testDeleteSuperHeroResource() {
+		final String appJson = RestSuperHeroResourceHandler.APP_JSON;
+		
+		// Create the required headers and set the content type for the test
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", appJson);
+		
+		// Call the Super Hero Service and delete a Super Hero Object 
+		ResponseEntity<SuperHero> superHeroEntity =
+				restTemplate.exchange("/my-app/resource/v0/superheroes/100",
+						HttpMethod.DELETE, new HttpEntity<>(headers), SuperHero.class);
+		
+		// Make sure that the response was successful
+		assertThat(superHeroEntity.getStatusCode(), is(HttpStatus.OK));
+	}
+	
+	/**
+	 * Ensure that the application content type is set correctly and
+	 * resource is returned with the correct status code.
+	 * 
 	 */
 	@Test
 	public void testGetAircraftResource() {
@@ -223,6 +245,28 @@ public class ServiceFrameworkApplicationTests {
 		// Make sure that the response was successful
 		assertThat(aircraftEntity.getStatusCode(), is(HttpStatus.OK));
 				
+	}
+	
+	/**
+	 * Ensure that the application content type is set correctly and
+	 * resource is returned with the correct status code.
+	 * 
+	 */
+	@Test
+	public void testDeleteAircraftResource() {
+		final String appJson = RestAircraftResourceHandler.APP_JSON;
+		
+		// Create the required headers and set the content type for the test
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", appJson);
+		
+		// Call the Aircraft Service and delete a Combat Aircraft Object 
+		ResponseEntity<CombatAircraft> combatAircraftEntity =
+				restTemplate.exchange("/my-app/resource/v0/aircraft/500",
+						HttpMethod.DELETE, new HttpEntity<>(headers), CombatAircraft.class);
+		
+		// Make sure that the response was successful
+		assertThat(combatAircraftEntity.getStatusCode(), is(HttpStatus.OK));
 	}
 
 }
