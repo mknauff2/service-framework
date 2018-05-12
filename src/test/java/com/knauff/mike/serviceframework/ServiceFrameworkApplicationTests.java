@@ -136,7 +136,7 @@ public class ServiceFrameworkApplicationTests {
 		// Call the Super Hero Service and get a Super Hero Object 
 		ResponseEntity<SuperHero> superHeroEntity =
 				restTemplate.exchange("/my-app/resource/v0/superheroes/100",
-						HttpMethod.PUT, entity, SuperHero.class);
+						HttpMethod.POST, entity, SuperHero.class);
 		
 		// Make sure that the response was successful
 		assertThat(superHeroEntity.getStatusCode(), is(HttpStatus.OK));
@@ -218,7 +218,7 @@ public class ServiceFrameworkApplicationTests {
 		// Call the Super Hero Service and get a Super Hero Object 
 		ResponseEntity<CombatAircraft> aircraftEntity =
 				restTemplate.exchange("/my-app/resource/v0/aircraft/500",
-						HttpMethod.PUT, entity, CombatAircraft.class);
+						HttpMethod.POST, entity, CombatAircraft.class);
 		
 		// Make sure that the response was successful
 		assertThat(aircraftEntity.getStatusCode(), is(HttpStatus.OK));
